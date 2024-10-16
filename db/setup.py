@@ -1,18 +1,18 @@
-from db.models import Base
+from db.models import Sales,Base
 from db import settings
 from sqlalchemy import create_engine, inspect
 
-def createEngine():
+def create_db_engine():
     from db import settings
-    engine = create_engine('postgresql://{username}:{password}@{host}:{port}/QQP_2024'.format(**settings.DATABASE['qqp']))
+    engine = create_engine('postgresql://{username}:{password}@{host}:{port}/qqp_2024'.format(**settings.DATABASE['qqp']))
     return engine
 
-def checkTableExists(table_name,engine):
-    inspector = inspect(engine)
-    return inspector.has_table(table_name)
 
-def createTables(table_name,engine):
-    if not checkTableExists(table_name):
+def create_tables(table_name,engine):
+    inspector = inspect(engine)
+    table_created = inspector.has_table(table_name)
+
+    if not table_created:
         print("Creando tabla Sales")
         Base.metadata.create_all(engine)
     

@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, Float,insert
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
 
@@ -22,3 +22,7 @@ class Sales(Base):
     municipio = Column(String(120),nullable=True)
     latitud = Column(Float(18,6),nullable=True)
     longitud = Column(Float(18,6),nullable=True)
+
+
+
+print(Sales.__tablename__)

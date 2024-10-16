@@ -3,11 +3,14 @@ from pyspark.sql.functions import col
 from pyspark.sql.types import StructType,StructField,IntegerType,StringType,FloatType,DateType
 import os
 from datetime import datetime
-spark = SparkSession.builder.appName('QQP').getOrCreate()
+jdbc_driver_path = '/usr/local/lib/postgresql-42.7.4.jar'
+spark = SparkSession.builder \
+        .appName('QQP') \
+        .config("spark.jars",jdbc_driver_path) \
+        .getOrCreate()
 
-#df1 = spark.read.csv('/files/')
 
-def createDataframe():
+def create_dataframe():
     schema = StructType([
         StructField('producto',StringType()),
         StructField('presentacion',StringType()),
@@ -30,6 +33,7 @@ def createDataframe():
     year = datetime.now().year
     files_dir = os.getcwd() + f'/files/{year}'
 
+    print("Creando dataframes..")
     for file in os.listdir(files_dir):
         df = spark.read.option('header',False).csv(f'{files_dir}/{file}',schema=schema)
         df_list.append(df)
@@ -37,11 +41,12 @@ def createDataframe():
     return df_list
 
 
-def mergeDataframes(df_list):
+def merge_dataframes(df_list):
+    print("Haciendo merge de dataframes..")
     if len(df_list) > 1:
-        df1 = df_list[0]
+        merged_df = df_list[0]
         for df in df_list[1:]:
-            merged_df = df1.unionAll(df)
+            merged_df = merged_df.unionAll(df)
         
         return merged_df
 
