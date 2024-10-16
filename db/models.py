@@ -22,7 +22,3 @@ class Sales(Base):
     municipio = Column(String(120),nullable=True)
     latitud = Column(Float(18,6),nullable=True)
     longitud = Column(Float(18,6),nullable=True)
-
-
-
-print(Sales.__tablename__)
