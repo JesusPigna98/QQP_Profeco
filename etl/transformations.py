@@ -10,7 +10,9 @@ spark = SparkSession.builder \
         .getOrCreate()
 
 
-def create_dataframe():
+
+
+def create_dataframe(files_dir):
     schema = StructType([
         StructField('producto',StringType()),
         StructField('presentacion',StringType()),
@@ -28,11 +30,10 @@ def create_dataframe():
         StructField('latitud',FloatType()),
         StructField('longitud',FloatType())
         ])
+    
 
     df_list = []
-    year = datetime.now().year
-    files_dir = os.getcwd() + f'/files/{year}'
-
+    
     print("Creando dataframes..")
     for file in os.listdir(files_dir):
         df = spark.read.option('header',False).csv(f'{files_dir}/{file}',schema=schema)

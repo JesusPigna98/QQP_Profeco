@@ -1,0 +1,6 @@
+pyspark==3.5.1
+rarfile==4.2
+Scrapy==2.11.2
+SQLAlchemy==1.4.46
+streamlit==1.39.0
+

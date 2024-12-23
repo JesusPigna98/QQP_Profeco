@@ -1,4 +1,4 @@
-from etl.scrapper import get_base_url,extract_files
+from etl.scrapper import get_base_url,extract_files,ensure_folder
 from etl.transformations import create_dataframe, merge_dataframes
 from db.setup import create_tables, create_db_engine
 from db.models import Sales
@@ -8,10 +8,11 @@ from datetime import datetime
 import os
 
 class DownloadData:
-    def __init__(self,base_url,year,month):
+    def __init__(self,base_url,year,month,file_path):
         self.base_url = base_url
         self.year = year
         self.month = month
+        self.file_path = file_path
 
     def scrape_base_url(self):
         print(f"Scrapping from {self.base_url}")
@@ -19,25 +20,28 @@ class DownloadData:
     
     def download_files(self):
         print(f"Most recent files found for {self.year}-{self.month}")
-        print(f"Downloading files from {self.url}")
+        print("Checking if month's folder exists..")
+        ensure_folder(self.file_path,self.month)
+        print(f"Attempting to download files from {self.url}")
 
         qqp_url = requests.get(self.url)
-        extract_files(qqp_url,self.month)
+        extract_files(qqp_url,self.month,self.file_path)
 
         print("Download completed")
 
 
 class MergeDataFrame:
 
-    def __init__(self):
-        pass
+    def __init__(self,year,month,files_dir):
+        self.year = year
+        self.month = month
+        self.files_dir = files_dir
 
     def get_dataframes(self):
-        return create_dataframe()
+        return create_dataframe(self.files_dir)
     
-    def set_dataframes(self):
-        dfs = self.get_dataframes()
-        return merge_dataframes(dfs)
+    def set_dataframes(self,df_list):
+        return merge_dataframes(df_list)
 
 
 class LoadToDB:
@@ -49,7 +53,7 @@ class LoadToDB:
         self.engine = create_db_engine()
         create_tables(self.table_name,self.engine)
 
-    def insert_data(self):
+    def insert_stg_data(self):
         url = 'jdbc:postgresql://{host}:{port}/qqp_2024'.format(**settings.DATABASE['qqp'])
         schema_table = f'"public"."{self.table_name}"'
         properties = {
@@ -74,19 +78,22 @@ class LoadToDB:
 base_url = 'https://datos.profeco.gob.mx/datos_abiertos/'
 year = str(datetime.now().year)
 current_month = str(datetime.now().month -1).rjust(2,'0')
+files_folder = 'files'
+files_dir = os.path.join(os.getcwd(),files_folder,year,current_month)
 
-qqp_extract = DownloadData(base_url,year,current_month)
+
+qqp_extract = DownloadData(base_url,year,current_month,files_dir)
 qqp_extract.scrape_base_url()
 qqp_extract.download_files()
 
-qqp_transform = MergeDataFrame()
-qqp_transform.get_dataframes
-merged_df = qqp_transform.set_dataframes()
+qqp_transform = MergeDataFrame(year,current_month,files_dir)
+df_list = qqp_transform.get_dataframes()
+merged_df = qqp_transform.set_dataframes(df_list)
 
 
 qqp_load = LoadToDB(merged_df)
-qqp_load.pg_create_tables()
-qqp_load.insert_data()
+#qqp_load.pg_create_tables() --Only needed when first created
+qqp_load.insert_stg_data()
 
 
 ###Note

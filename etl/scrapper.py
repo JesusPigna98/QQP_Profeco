@@ -21,9 +21,26 @@ def get_base_url(base_url,year):
         print("URL not found.")
 
 
-def extract_files(url,current_month):
+def ensure_folder(full_path,month):
+    # Check if the folder exists
+    if not os.path.exists(full_path):
+        # Create the folder
+        os.makedirs(full_path)
+        print(f"Folder '{full_path}' created.")
+    else:
+        print(f"Folder '{full_path}' already exists.")
+    
+    return full_path
+
+
+
+def extract_files(url,current_month,files_dir):
     with RarFile(BytesIO(url.content)) as rf:
         for file in rf.infolist():
-            file_name = str(file.filename).split('/')
-            if file_name[1].startswith(current_month):
-                rf.extract(file.filename,'./files')
+            file_name = os.path.basename(file.filename)
+
+            if file_name.startswith(current_month):
+                destination_path = os.path.join(files_dir, file_name)
+                with open(destination_path, 'wb') as f:
+                    f.write(rf.read(file))
+                print(f'File downloaded to {destination_path}')
